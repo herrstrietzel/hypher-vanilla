@@ -6,6 +6,7 @@
     function Hypher(language) {
         this.trie = this.createTrie(language['patterns']);
     }
+
     /**
      * Creates a trie from a language pattern.
      */
@@ -87,6 +88,7 @@
 
         let { leftMin, rightMin, exceptions, minLength } = options
 
+
         // don't hyphen as excluded or to short
         if (exceptions.length && exceptions.includes(word) ) {
             return [word];
@@ -95,7 +97,9 @@
         if (word.indexOf('\u00AD') !== -1) {
             return [word];
         }
+
         word = '_' + word + '_';
+
         let wordLength = word.length;
         let characters = word.toLowerCase().split('');
         let originalCharacters = word.split('');
@@ -130,6 +134,7 @@
                 result[result.length - 1] += originalCharacters[i];
             }
         }
+
         return result;
     };
 
@@ -144,12 +149,29 @@
      */
     HTMLElement.prototype.hyphenate = function (language, options) {
         if (window.Hypher.languages[language]) {
-            var i = 0, len = this.childNodes.length;
-            for (; i < len; i += 1) {
-                if (this.childNodes[i].nodeType === 3) {
-                    this.childNodes[i].nodeValue = window.Hypher.languages[language].hyphenateText(this.childNodes[i].nodeValue, options);
+            //let children  = [...this.children]
+            let children  = [...this.childNodes]
+
+            children.forEach(child=>{
+                if(child.nodeType===3){
+                    child.nodeValue =  window.Hypher.languages[language].hyphenateText(child.nodeValue, options)
+                }else{
+                    let textnodes = getTextNodesInEL(child)
+                    textnodes.forEach(node=>{
+                        node.nodeValue =  window.Hypher.languages[language].hyphenateText(node.nodeValue, options)
+                    })
                 }
-            }
+            })
         }
     };
 })();
+
+
+function getTextNodesInEL(el) {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+    const nodes = [];
+    while (walker.nextNode()) {
+      nodes.push(walker.currentNode);
+    }
+    return nodes;
+  }
